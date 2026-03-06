@@ -1,0 +1,69 @@
+import { User } from '@supabase/supabase-js'
+import { redirect } from 'next/navigation'
+
+import { createClient } from '@/lib/supabase/server'
+
+type UnknownRecord = Record<string, unknown>
+
+export interface AdminProfile extends UnknownRecord {
+  id: string
+  is_superadmin: boolean
+}
+
+export interface AdminContext {
+  supabase: Awaited<ReturnType<typeof createClient>>
+  user: User
+  profile: AdminProfile
+}
+
+function toBoolean(value: unknown) {
+  return value === true || value === 'true' || value === 1 || value === '1'
+}
+
+export async function requireSuperadmin(): Promise<AdminContext> {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    redirect('/')
+  }
+
+  const provider =
+    typeof user.app_metadata?.provider === 'string' ? user.app_metadata.provider.toLowerCase() : ''
+  const providers = Array.isArray(user.app_metadata?.providers)
+    ? user.app_metadata.providers.filter((item): item is string => typeof item === 'string').map((item) => item.toLowerCase())
+    : []
+  const isGoogleAuth = provider === 'google' || providers.includes('google')
+
+  if (!isGoogleAuth) {
+    redirect('/?auth=google-required')
+  }
+
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (profileError || !profileData) {
+    redirect('/protected?admin=missing-profile')
+  }
+
+  if (!toBoolean((profileData as UnknownRecord).is_superadmin)) {
+    redirect('/protected?admin=forbidden')
+  }
+
+  return {
+    supabase,
+    user,
+    profile: {
+      ...(profileData as UnknownRecord),
+      id: typeof (profileData as UnknownRecord).id === 'string' ? ((profileData as UnknownRecord).id as string) : user.id,
+      is_superadmin: true,
+    },
+  }
+}
