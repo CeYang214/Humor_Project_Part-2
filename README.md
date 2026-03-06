@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Humor Project Part 2
 
-## Getting Started
+Next.js + Supabase app with:
+- Caption creation/rating experience (`/` and `/protected`)
+- Superadmin-only admin area (`/admin`)
 
-First, run the development server:
+## Admin Area Delivered
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Routes:
+- `/admin`: statistics dashboard (profiles/images/captions/votes)
+- `/admin/users`: `READ` users/profiles
+- `/admin/images`: `CREATE/READ/UPDATE/DELETE` images
+- `/admin/captions`: `READ` captions
+
+## Security Model
+
+Admin routes are protected in two layers:
+1. Middleware checks that a valid authenticated session exists for `/admin/*`.
+2. Server-side guard (`requireSuperadmin`) blocks access unless:
+   - authenticated through Google OAuth
+   - `profiles.is_superadmin == TRUE` for the current user
+
+No RLS policies were changed.
+
+## Solving The "Superadmin Lockout" Problem
+
+If you are not yet a superadmin, use Supabase SQL Editor (project owner privileges) to promote your own profile row:
+
+```sql
+update profiles
+set is_superadmin = true
+where id = '<your-auth-user-id>';
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+How to get your ID quickly:
+- Sign in normally and copy the user id from your app session/profile display.
+- Or query `profiles` for your email/username and copy the `id`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This updates data only (not policies), so it respects the assignment constraint.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment Notes (Manual Step)
 
-## Learn More
+I pushed commit `903db315ee6f9576f6feaa68dd491aefc70ba5a7` to `main`.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To finish submission in Vercel:
+1. Deploy/update your **caption creation + rating app** from this commit.
+2. Deploy/update your **admin area app** from this commit (or from the admin-focused project if you split repos).
+3. In each Vercel project, set **Deployment Protection** to **Off** so Incognito access works.
+4. Copy the two commit-specific deployment URLs into your submission.
