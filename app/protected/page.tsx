@@ -40,6 +40,11 @@ interface PersistedImageRow {
   url: string | null
 }
 
+interface ProfileDebugRow {
+  id: string
+  is_superadmin: unknown
+}
+
 interface CaptionHistoryGroup {
   imageId: string
   imageUrl: string
@@ -116,6 +121,8 @@ export default function ProtectedPage() {
   const [historyLoading, setHistoryLoading] = useState(false)
   const [status, setStatus] = useState<UiStatus>('idle')
   const [message, setMessage] = useState('')
+  const [profileDebug, setProfileDebug] = useState<ProfileDebugRow | null>(null)
+  const [profileDebugError, setProfileDebugError] = useState('')
 
   const loadSavedHistory = useCallback(
     async (profileId: string, hydrateLatest: boolean) => {
@@ -277,11 +284,44 @@ export default function ProtectedPage() {
       setCaptionHistory([])
       setUploadedImageUrl('')
       setGeneratedCaptions([])
+      setProfileDebug(null)
+      setProfileDebugError('')
       return
     }
 
     void loadSavedHistory(user.id, true)
   }, [user, loadSavedHistory])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadProfileDebug = async () => {
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, is_superadmin')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (cancelled) return
+
+      if (error) {
+        setProfileDebug(null)
+        setProfileDebugError(error.message)
+        return
+      }
+
+      setProfileDebug((data ?? null) as ProfileDebugRow | null)
+      setProfileDebugError('')
+    }
+
+    void loadProfileDebug()
+
+    return () => {
+      cancelled = true
+    }
+  }, [supabase, user])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -429,6 +469,16 @@ export default function ProtectedPage() {
             <p className="mt-2 text-base text-white">
               {user?.email ? `Signed in as ${user.email}` : 'Loading account details...'}
             </p>
+            {user?.id && <p className="mt-2 break-all text-xs text-slate-300">user.id: {user.id}</p>}
+            {profileDebug && (
+              <p className="mt-2 break-all text-xs text-slate-300">
+                profiles.is_superadmin: {String(profileDebug.is_superadmin)}
+              </p>
+            )}
+            {user && !profileDebug && !profileDebugError && (
+              <p className="mt-2 text-xs text-amber-200">No `profiles` row found for this user id.</p>
+            )}
+            {profileDebugError && <p className="mt-2 text-xs text-rose-300">profiles query error: {profileDebugError}</p>}
           </div>
 
           {user ? (
