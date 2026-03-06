@@ -17,7 +17,12 @@ export interface AdminContext {
 }
 
 function toBoolean(value: unknown) {
-  return value === true || value === 'true' || value === 1 || value === '1'
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value === 1
+  if (typeof value !== 'string') return false
+
+  const normalized = value.trim().toLowerCase()
+  return ['true', '1', 't', 'yes', 'y', 'on'].includes(normalized)
 }
 
 export async function requireSuperadmin(): Promise<AdminContext> {
