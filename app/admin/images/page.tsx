@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import { createImageAction, deleteImageAction, updateImageAction } from '@/app/admin/actions'
+import { createImageAction, deleteImageAction, updateImageAction, uploadImageAction } from '@/app/admin/actions'
 import { requireSuperadmin } from '@/lib/supabase/admin'
 
 type ImageRecord = Record<string, unknown>
@@ -87,6 +87,49 @@ export default async function AdminImagesPage({ searchParams }: AdminImagesPageP
           >
             Create
           </button>
+        </form>
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+        <h3 className="text-lg font-semibold">Upload Image File</h3>
+        <p className="mt-1 text-xs text-slate-400">
+          Upload to Supabase Storage, then insert the generated public URL into `images`.
+        </p>
+        <form action={uploadImageAction} className="mt-3 grid gap-3 md:grid-cols-4">
+          <label className="grid gap-1 text-sm md:col-span-2">
+            <span className="text-slate-300">File</span>
+            <input
+              type="file"
+              name="file"
+              accept="image/*"
+              required
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+            />
+          </label>
+          <label className="grid gap-1 text-sm">
+            <span className="text-slate-300">Bucket</span>
+            <input
+              name="bucket"
+              defaultValue="images"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+            />
+          </label>
+          <label className="grid gap-1 text-sm">
+            <span className="text-slate-300">Prefix (optional)</span>
+            <input
+              name="prefix"
+              placeholder="admin-uploads"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+            />
+          </label>
+          <div className="md:col-span-4">
+            <button
+              type="submit"
+              className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
+            >
+              Upload
+            </button>
+          </div>
         </form>
       </section>
 

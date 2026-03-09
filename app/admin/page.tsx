@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 import { requireSuperadmin } from '@/lib/supabase/admin'
 
@@ -143,6 +144,12 @@ export default async function AdminDashboardPage() {
         <p className="mt-3 max-w-3xl text-sm text-slate-300">
           Snapshot of platform activity across accounts, uploads, captions, and voting behavior.
         </p>
+        <Link
+          href="/admin/operations"
+          className="mt-4 inline-flex rounded-xl border border-cyan-300/40 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+        >
+          Open Full Data Operations
+        </Link>
         {errors.length > 0 && (
           <div className="mt-4 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             Some data failed to load: {errors.join(' | ')}
