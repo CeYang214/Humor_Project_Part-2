@@ -15,6 +15,21 @@ interface Caption {
   imageUrl?: string // We'll add the URL separately
 }
 
+type CaptionRow = Partial<Caption> & Record<string, unknown>
+
+function toSafeCaption(row: CaptionRow): Caption {
+  return {
+    id: typeof row.id === 'string' ? row.id : String(row.id ?? ''),
+    content: typeof row.content === 'string' ? row.content : '',
+    created_datetime_utc:
+      typeof row.created_datetime_utc === 'string' ? row.created_datetime_utc : '',
+    is_public: row.is_public === true,
+    profile_id: typeof row.profile_id === 'string' ? row.profile_id : '',
+    image_id: typeof row.image_id === 'string' ? row.image_id : '',
+    imageUrl: typeof row.imageUrl === 'string' ? row.imageUrl : undefined,
+  }
+}
+
 const SkeletonCard = () => (
   <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden animate-pulse">
     <div className="w-full h-48 bg-gray-400/50"></div>
@@ -41,80 +56,97 @@ export default function Home() {
   async function fetchCaptions() {
     setLoading(true)
 
-    // Fetch MORE captions than we need (about 2x-3x) to account for missing images
-    const fetchMultiplier = 3
-    const from = (currentPage - 1) * captionsPerPage * fetchMultiplier
-    const to = from + (captionsPerPage * fetchMultiplier) - 1
+    try {
+      // Fetch MORE captions than we need (about 2x-3x) to account for missing images
+      const fetchMultiplier = 3
+      const from = (currentPage - 1) * captionsPerPage * fetchMultiplier
+      const to = from + (captionsPerPage * fetchMultiplier) - 1
 
-    console.log(`Fetching captions from ${from} to ${to} for page ${currentPage}`)
+      console.log(`Fetching captions from ${from} to ${to} for page ${currentPage}`)
 
-    // Fetch captions with their image_id
-    const { data: captionsData, error: captionsError } = await supabase
-      .from('captions')
-      .select('id, content, created_datetime_utc, is_public, profile_id, image_id')
-      .range(from, to)
-
-    if (captionsError) {
-      console.error('Supabase captions error:', captionsError)
-      setLoading(false)
-      return
-    }
-
-    if (!captionsData || captionsData.length === 0) {
-      console.log('No captions data returned')
-      setCaptions([])
-      setLoading(false)
-      return
-    }
-
-    console.log(`Fetched ${captionsData.length} captions`)
-
-    // Get unique image IDs
-    const imageIds = [...new Set(captionsData.map(c => c.image_id).filter(Boolean))]
-    console.log(`Found ${imageIds.length} unique image IDs`)
-
-    // Fetch all images at once
-    const { data: imagesData, error: imagesError } = await supabase
-      .from('images')
-      .select('id, url')
-      .in('id', imageIds)
-
-    if (imagesError) {
-      console.error('Supabase images error:', imagesError)
-    }
-
-    console.log(`Fetched ${imagesData?.length || 0} images`)
-
-    // Create a map of image_id to url
-    const imageMap = new Map(imagesData?.map(img => [img.id, img.url]) || [])
-
-    // Add image URLs to captions
-    const captionsWithImages = captionsData.map(caption => ({
-      ...caption,
-      imageUrl: imageMap.get(caption.image_id) || undefined
-    }))
-
-    // Filter to only captions with valid image URLs
-    const validCaptions = captionsWithImages.filter(c => c.imageUrl && c.imageUrl.trim() !== '')
-
-    console.log(`${validCaptions.length} captions have valid images`)
-
-    // Take exactly 36 (or whatever we have if less)
-    const finalCaptions = validCaptions.slice(0, captionsPerPage)
-    console.log(`Displaying ${finalCaptions.length} captions on this page`)
-
-    setCaptions(finalCaptions)
-    setLoading(false)
-
-    // Get total count for pagination (only on first load)
-    if (currentPage === 1) {
-      const { count } = await supabase
+      // Fetch captions with their image_id
+      const { data: captionsData, error: captionsError } = await supabase
         .from('captions')
-        .select('*', { count: 'exact', head: true })
+        .select('id, content, created_datetime_utc, is_public, profile_id, image_id')
+        .range(from, to)
 
-      if (count) {
-        setTotalPages(Math.ceil(count / (captionsPerPage * fetchMultiplier)))
+      if (captionsError) {
+        console.error('Supabase captions error:', captionsError)
+        return
       }
+
+      if (!captionsData || captionsData.length === 0) {
+        console.log('No captions data returned')
+        setCaptions([])
+        return
+      }
+
+      console.log(`Fetched ${captionsData.length} captions`)
+
+      // Get unique image IDs
+      const imageIds = [
+        ...new Set(captionsData.map((c) => c.image_id).filter((value): value is string => typeof value === 'string' && value.trim() !== '')),
+      ]
+      console.log(`Found ${imageIds.length} unique image IDs`)
+
+      // Fetch all images at once
+      const { data: imagesData, error: imagesError } = await supabase
+        .from('images')
+        .select('id, url')
+        .in('id', imageIds)
+
+      if (imagesError) {
+        console.error('Supabase images error:', imagesError)
+      }
+
+      console.log(`Fetched ${imagesData?.length || 0} images`)
+
+      // Create a map of image_id to url
+      const imageMap = new Map<string, string>()
+      imagesData?.forEach((img) => {
+        if (typeof img.id !== 'string') return
+        if (typeof img.url !== 'string') return
+        const trimmed = img.url.trim()
+        if (!trimmed) return
+        imageMap.set(img.id, trimmed)
+      })
+
+      // Add image URLs to captions
+      const captionsWithImages = captionsData.map((caption) =>
+        toSafeCaption({
+          ...(caption as CaptionRow),
+          imageUrl: typeof caption.image_id === 'string' ? imageMap.get(caption.image_id) : undefined,
+        })
+      )
+
+      // Filter to only captions with valid image URLs
+      const validCaptions = captionsWithImages.filter(
+        (c) => typeof c.imageUrl === 'string' && c.imageUrl.trim() !== ''
+      )
+
+      console.log(`${validCaptions.length} captions have valid images`)
+
+      // Take exactly 36 (or whatever we have if less)
+      const finalCaptions = validCaptions.slice(0, captionsPerPage)
+      console.log(`Displaying ${finalCaptions.length} captions on this page`)
+
+      setCaptions(finalCaptions)
+
+      // Get total count for pagination (only on first load)
+      if (currentPage === 1) {
+        const { count } = await supabase
+          .from('captions')
+          .select('*', { count: 'exact', head: true })
+
+        if (count) {
+          setTotalPages(Math.ceil(count / (captionsPerPage * fetchMultiplier)))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch captions:', error)
+      setCaptions([])
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -419,7 +451,7 @@ const CaptionCard: React.FC<CaptionCardProps> = ({ caption, canVote, userVote, s
       {caption.imageUrl && !imageError ? (
         <img
           src={caption.imageUrl}
-          alt={`Image for caption: ${caption.content.substring(0, 30)}`}
+          alt={`Image for caption: ${(caption.content || '').slice(0, 30)}`}
           className="w-full h-48 object-cover"
           onError={handleImageError}
         />
@@ -431,7 +463,7 @@ const CaptionCard: React.FC<CaptionCardProps> = ({ caption, canVote, userVote, s
         </div>
       )}
       <div className="p-6">
-        <p className="text-lg font-medium text-gray-100 mb-2">{caption.content}</p>
+        <p className="text-lg font-medium text-gray-100 mb-2">{caption.content || '(No caption text)'}</p>
         <p className="text-sm text-gray-400">
           {new Date(caption.created_datetime_utc).toLocaleDateString()}
         </p>
