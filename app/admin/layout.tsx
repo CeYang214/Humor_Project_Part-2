@@ -2,14 +2,15 @@ import Link from 'next/link'
 
 import { signOutAdminAction } from '@/app/admin/actions'
 import { AdminNav } from '@/app/admin/admin-nav'
-import { requireSuperadmin } from '@/lib/supabase/admin'
+import { ThemeModeToggle } from '@/app/admin/theme-mode-toggle'
+import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
 export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const { user } = await requireSuperadmin()
+  const { user } = await requireSuperadminOrMatrixAdmin()
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#082f49_0%,#020617_45%,#020617_100%)] text-slate-100">
@@ -20,6 +21,7 @@ export default async function AdminLayout({
           <p className="mt-2 text-xs text-slate-400">Signed in as {user.email ?? user.id}</p>
 
           <AdminNav />
+          <ThemeModeToggle />
 
           <div className="mt-6 grid gap-2">
             <Link

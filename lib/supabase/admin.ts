@@ -8,6 +8,7 @@ type UnknownRecord = Record<string, unknown>
 export interface AdminProfile extends UnknownRecord {
   id: string
   is_superadmin: boolean
+  is_matrix_admin: boolean
 }
 
 export interface AdminContext {
@@ -25,7 +26,8 @@ function toBoolean(value: unknown) {
   return ['true', '1', 't', 'yes', 'y', 'on'].includes(normalized)
 }
 
-export async function requireSuperadmin(): Promise<AdminContext> {
+async function requireAdminRole(options?: { allowMatrixAdmin?: boolean }): Promise<AdminContext> {
+  const allowMatrixAdmin = options?.allowMatrixAdmin === true
   const supabase = await createClient()
 
   const {
@@ -58,7 +60,10 @@ export async function requireSuperadmin(): Promise<AdminContext> {
     redirect('/protected?admin=missing-profile')
   }
 
-  if (!toBoolean((profileData as UnknownRecord).is_superadmin)) {
+  const isSuperadmin = toBoolean((profileData as UnknownRecord).is_superadmin)
+  const isMatrixAdmin = toBoolean((profileData as UnknownRecord).is_matrix_admin)
+
+  if (!isSuperadmin && !(allowMatrixAdmin && isMatrixAdmin)) {
     redirect('/protected?admin=forbidden')
   }
 
@@ -68,7 +73,16 @@ export async function requireSuperadmin(): Promise<AdminContext> {
     profile: {
       ...(profileData as UnknownRecord),
       id: typeof (profileData as UnknownRecord).id === 'string' ? ((profileData as UnknownRecord).id as string) : user.id,
-      is_superadmin: true,
+      is_superadmin: isSuperadmin,
+      is_matrix_admin: isMatrixAdmin,
     },
   }
+}
+
+export async function requireSuperadmin(): Promise<AdminContext> {
+  return requireAdminRole({ allowMatrixAdmin: false })
+}
+
+export async function requireSuperadminOrMatrixAdmin(): Promise<AdminContext> {
+  return requireAdminRole({ allowMatrixAdmin: true })
 }

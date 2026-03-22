@@ -11,7 +11,7 @@ import {
   entitySupportsUpdate,
 } from '@/lib/admin/entities'
 import { loadEntitySnapshot, pickRowIdentifier, stringifyJson } from '@/lib/admin/table-access'
-import { requireSuperadmin } from '@/lib/supabase/admin'
+import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
 interface AdminOperationsPageProps {
   searchParams: Promise<{
@@ -30,7 +30,7 @@ function stringifyIdentifier(value: unknown) {
 }
 
 export default async function AdminOperationsPage({ searchParams }: AdminOperationsPageProps) {
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
   const params = await searchParams
 
   const snapshots = await Promise.all(

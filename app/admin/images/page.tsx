@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
 import { createImageAction, deleteImageAction, updateImageAction, uploadImageAction } from '@/app/admin/actions'
-import { requireSuperadmin } from '@/lib/supabase/admin'
+import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
 type ImageRecord = Record<string, unknown>
 
@@ -26,7 +26,7 @@ interface AdminImagesPageProps {
 }
 
 export default async function AdminImagesPage({ searchParams }: AdminImagesPageProps) {
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
   const params = await searchParams
 
   const { data, error } = await supabase.from('images').select('*').limit(250)

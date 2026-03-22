@@ -1,11 +1,11 @@
-import { requireSuperadmin } from '@/lib/supabase/admin'
+import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
 import { UsersTable } from '@/app/admin/users/users-table'
 
 type ProfileRecord = Record<string, unknown>
 
 export default async function AdminUsersPage() {
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
   const { data, error } = await supabase.from('profiles').select('*').limit(500)
 
   const profiles = (data ?? []) as ProfileRecord[]

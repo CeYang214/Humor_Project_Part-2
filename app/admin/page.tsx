@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { requireSuperadmin } from '@/lib/supabase/admin'
+import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
 type ProfileRow = {
   id: string
@@ -44,7 +44,7 @@ function normalizeDate(value: string | null) {
 }
 
 export default async function AdminDashboardPage() {
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
 
   const [profilesResult, imagesResult, captionsResult, votesResult] = await Promise.all([
     supabase.from('profiles').select('id, is_superadmin'),

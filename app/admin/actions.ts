@@ -10,10 +10,11 @@ import {
   getEntityDefinition,
 } from '@/lib/admin/entities'
 import { parseJsonObject, parseMatchValue, resolveEntityTableName } from '@/lib/admin/table-access'
-import { requireSuperadmin } from '@/lib/supabase/admin'
+import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 type ActionStatus = 'success' | 'error'
+type AdminRedirectTarget = '/admin/operations' | '/admin/prompt-chain'
 
 function normalizeText(value: FormDataEntryValue | null) {
   if (typeof value !== 'string') return ''
@@ -29,10 +30,36 @@ function getOperationsMessagePath(status: ActionStatus, message: string, entityK
   return `/admin/operations?status=${status}&message=${encodeURIComponent(message)}${entityParam}`
 }
 
+function getPromptChainMessagePath(status: ActionStatus, message: string, entityKey?: string, flavorId?: string) {
+  const entityParam = entityKey ? `&entity=${encodeURIComponent(entityKey)}` : ''
+  const flavorParam = flavorId ? `&flavor=${encodeURIComponent(flavorId)}` : ''
+  return `/admin/prompt-chain?status=${status}&message=${encodeURIComponent(message)}${entityParam}${flavorParam}`
+}
+
+function normalizeRedirectTarget(value: FormDataEntryValue | null): AdminRedirectTarget {
+  if (value === '/admin/prompt-chain') return '/admin/prompt-chain'
+  return '/admin/operations'
+}
+
+function getEntityMessagePath(
+  target: AdminRedirectTarget,
+  status: ActionStatus,
+  message: string,
+  entityKey?: string,
+  flavorId?: string
+) {
+  if (target === '/admin/prompt-chain') {
+    return getPromptChainMessagePath(status, message, entityKey, flavorId)
+  }
+
+  return getOperationsMessagePath(status, message, entityKey)
+}
+
 function revalidateAdminRoutes() {
   revalidatePath('/admin')
   revalidatePath('/admin/images')
   revalidatePath('/admin/operations')
+  revalidatePath('/admin/prompt-chain')
 }
 
 function assertEntity(entityKey: string) {
@@ -45,7 +72,7 @@ function assertEntity(entityKey: string) {
 
 async function resolveEntityTableOrThrow(entityKey: string) {
   const entity = assertEntity(entityKey)
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
   const resolution = await resolveEntityTableName(supabase, entity)
 
   if (!resolution.tableName) {
@@ -67,13 +94,15 @@ export async function signOutAdminAction() {
 
 export async function createEntityAction(formData: FormData) {
   const entityKey = normalizeText(formData.get('entity_key'))
+  const redirectTarget = normalizeRedirectTarget(formData.get('redirect_to'))
+  const flavorId = normalizeText(formData.get('flavor_id'))
 
   try {
     const payload = parseJsonObject(normalizeText(formData.get('payload')))
     const { supabase, entity, tableName } = await resolveEntityTableOrThrow(entityKey)
 
     if (!entitySupportsCreate(entity)) {
-      redirect(getOperationsMessagePath('error', `${entity.label} is read-only.`, entityKey))
+      redirect(getEntityMessagePath(redirectTarget, 'error', `${entity.label} is read-only.`, entityKey, flavorId))
     }
 
     const { error } = await supabase.from(tableName).insert(payload)
@@ -83,15 +112,17 @@ export async function createEntityAction(formData: FormData) {
     }
 
     revalidateAdminRoutes()
-    redirect(getOperationsMessagePath('success', `${entity.label}: row created.`, entityKey))
+    redirect(getEntityMessagePath(redirectTarget, 'success', `${entity.label}: row created.`, entityKey, flavorId))
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Create operation failed.'
-    redirect(getOperationsMessagePath('error', message, entityKey))
+    redirect(getEntityMessagePath(redirectTarget, 'error', message, entityKey, flavorId))
   }
 }
 
 export async function updateEntityAction(formData: FormData) {
   const entityKey = normalizeText(formData.get('entity_key'))
+  const redirectTarget = normalizeRedirectTarget(formData.get('redirect_to'))
+  const flavorId = normalizeText(formData.get('flavor_id'))
 
   try {
     const payload = parseJsonObject(normalizeText(formData.get('payload')))
@@ -104,7 +135,9 @@ export async function updateEntityAction(formData: FormData) {
     const { supabase, entity, tableName } = await resolveEntityTableOrThrow(entityKey)
 
     if (!entitySupportsUpdate(entity)) {
-      redirect(getOperationsMessagePath('error', `${entity.label} does not allow updates.`, entityKey))
+      redirect(
+        getEntityMessagePath(redirectTarget, 'error', `${entity.label} does not allow updates.`, entityKey, flavorId)
+      )
     }
 
     const { error } = await supabase
@@ -117,15 +150,17 @@ export async function updateEntityAction(formData: FormData) {
     }
 
     revalidateAdminRoutes()
-    redirect(getOperationsMessagePath('success', `${entity.label}: row updated.`, entityKey))
+    redirect(getEntityMessagePath(redirectTarget, 'success', `${entity.label}: row updated.`, entityKey, flavorId))
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Update operation failed.'
-    redirect(getOperationsMessagePath('error', message, entityKey))
+    redirect(getEntityMessagePath(redirectTarget, 'error', message, entityKey, flavorId))
   }
 }
 
 export async function deleteEntityAction(formData: FormData) {
   const entityKey = normalizeText(formData.get('entity_key'))
+  const redirectTarget = normalizeRedirectTarget(formData.get('redirect_to'))
+  const flavorId = normalizeText(formData.get('flavor_id'))
 
   try {
     const matchColumn = normalizeText(formData.get('match_column'))
@@ -137,7 +172,9 @@ export async function deleteEntityAction(formData: FormData) {
     const { supabase, entity, tableName } = await resolveEntityTableOrThrow(entityKey)
 
     if (!entitySupportsDelete(entity)) {
-      redirect(getOperationsMessagePath('error', `${entity.label} does not allow deletes.`, entityKey))
+      redirect(
+        getEntityMessagePath(redirectTarget, 'error', `${entity.label} does not allow deletes.`, entityKey, flavorId)
+      )
     }
 
     const { error } = await supabase
@@ -150,10 +187,68 @@ export async function deleteEntityAction(formData: FormData) {
     }
 
     revalidateAdminRoutes()
-    redirect(getOperationsMessagePath('success', `${entity.label}: row deleted.`, entityKey))
+    redirect(getEntityMessagePath(redirectTarget, 'success', `${entity.label}: row deleted.`, entityKey, flavorId))
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Delete operation failed.'
-    redirect(getOperationsMessagePath('error', message, entityKey))
+    redirect(getEntityMessagePath(redirectTarget, 'error', message, entityKey, flavorId))
+  }
+}
+
+export async function reorderHumorFlavorStepAction(formData: FormData) {
+  const redirectTarget = normalizeRedirectTarget(formData.get('redirect_to'))
+  const flavorId = normalizeText(formData.get('flavor_id'))
+
+  try {
+    const orderColumn = normalizeText(formData.get('order_column'))
+    const currentMatchColumn = normalizeText(formData.get('current_match_column'))
+    const targetMatchColumn = normalizeText(formData.get('target_match_column'))
+    const currentMatchValue = parseMatchValue(normalizeText(formData.get('current_match_value')))
+    const targetMatchValue = parseMatchValue(normalizeText(formData.get('target_match_value')))
+    const currentOrderRaw = normalizeText(formData.get('current_order'))
+    const targetOrderRaw = normalizeText(formData.get('target_order'))
+
+    if (!orderColumn || !currentMatchColumn || !targetMatchColumn || !currentOrderRaw || !targetOrderRaw) {
+      throw new Error('Missing reorder metadata for humor flavor step.')
+    }
+
+    const currentOrder = Number(currentOrderRaw)
+    const targetOrder = Number(targetOrderRaw)
+
+    if (!Number.isFinite(currentOrder) || !Number.isFinite(targetOrder)) {
+      throw new Error('Step order values must be numeric to reorder.')
+    }
+
+    const { supabase, entity, tableName } = await resolveEntityTableOrThrow('humor_flavor_steps')
+
+    const { error: currentUpdateError } = await supabase
+      .from(tableName)
+      .update({ [orderColumn]: targetOrder })
+      .eq(currentMatchColumn, currentMatchValue)
+
+    if (currentUpdateError) {
+      throw new Error(currentUpdateError.message)
+    }
+
+    const { error: targetUpdateError } = await supabase
+      .from(tableName)
+      .update({ [orderColumn]: currentOrder })
+      .eq(targetMatchColumn, targetMatchValue)
+
+    if (targetUpdateError) {
+      // Best-effort rollback of the first update.
+      await supabase
+        .from(tableName)
+        .update({ [orderColumn]: currentOrder })
+        .eq(currentMatchColumn, currentMatchValue)
+
+      throw new Error(targetUpdateError.message)
+    }
+
+    revalidateAdminRoutes()
+    redirect(getEntityMessagePath(redirectTarget, 'success', `${entity.label}: step reordered.`, entity.key, flavorId))
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Reorder failed.'
+    redirect(getEntityMessagePath(redirectTarget, 'error', message, 'humor_flavor_steps', flavorId))
   }
 }
 
@@ -162,7 +257,7 @@ export async function uploadImageAction(formData: FormData) {
 
   try {
     const { supabase, user, entity, tableName } = await (async () => {
-      const { supabase, user } = await requireSuperadmin()
+      const { supabase, user } = await requireSuperadminOrMatrixAdmin()
       const entity = assertEntity(entityKey)
       const resolution = await resolveEntityTableName(supabase, entity)
 
@@ -225,7 +320,7 @@ export async function uploadImageAction(formData: FormData) {
 }
 
 export async function createImageAction(formData: FormData) {
-  const { supabase, user } = await requireSuperadmin()
+  const { supabase, user } = await requireSuperadminOrMatrixAdmin()
   const url = normalizeText(formData.get('url'))
 
   if (!url) {
@@ -255,7 +350,7 @@ export async function createImageAction(formData: FormData) {
 }
 
 export async function updateImageAction(formData: FormData) {
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
   const id = normalizeText(formData.get('id'))
   const url = normalizeText(formData.get('url'))
 
@@ -284,7 +379,7 @@ export async function updateImageAction(formData: FormData) {
 }
 
 export async function deleteImageAction(formData: FormData) {
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
   const id = normalizeText(formData.get('id'))
 
   if (!id) {

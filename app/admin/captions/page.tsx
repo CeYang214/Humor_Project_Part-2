@@ -1,4 +1,4 @@
-import { requireSuperadmin } from '@/lib/supabase/admin'
+import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
 import { CaptionsTable } from '@/app/admin/captions/captions-table'
 
@@ -12,7 +12,7 @@ type CaptionRow = {
 }
 
 export default async function AdminCaptionsPage() {
-  const { supabase } = await requireSuperadmin()
+  const { supabase } = await requireSuperadminOrMatrixAdmin()
 
   let captionsResult = await supabase
     .from('captions')
