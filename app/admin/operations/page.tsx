@@ -182,7 +182,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
               )}
 
               {hiddenRowCount > 0 && (
-                <div className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-xs text-cyan-100">
+                <div className="admin-ops-info rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-xs text-cyan-100">
                   Showing first {visibleRows.length} rows for layout/performance. {hiddenRowCount} additional row(s) are hidden.
                 </div>
               )}
