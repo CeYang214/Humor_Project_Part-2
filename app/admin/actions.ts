@@ -15,6 +15,7 @@ import { createClient } from '@/lib/supabase/server'
 
 type ActionStatus = 'success' | 'error'
 type AdminRedirectTarget = '/admin/operations' | '/admin/prompt-chain'
+type JsonObject = Record<string, unknown>
 
 function normalizeText(value: FormDataEntryValue | null) {
   if (typeof value !== 'string') return ''
@@ -72,7 +73,7 @@ function assertEntity(entityKey: string) {
 
 async function resolveEntityTableOrThrow(entityKey: string) {
   const entity = assertEntity(entityKey)
-  const { supabase } = await requireSuperadminOrMatrixAdmin()
+  const { supabase, user } = await requireSuperadminOrMatrixAdmin()
   const resolution = await resolveEntityTableName(supabase, entity)
 
   if (!resolution.tableName) {
@@ -81,8 +82,24 @@ async function resolveEntityTableOrThrow(entityKey: string) {
 
   return {
     supabase,
+    user,
     entity,
     tableName: resolution.tableName,
+  }
+}
+
+function withCreateAuditFields(payload: JsonObject, userId: string): JsonObject {
+  return {
+    ...payload,
+    created_by_user_id: userId,
+    modified_by_user_id: userId,
+  }
+}
+
+function withUpdateAuditFields(payload: JsonObject, userId: string): JsonObject {
+  return {
+    ...payload,
+    modified_by_user_id: userId,
   }
 }
 
@@ -99,13 +116,13 @@ export async function createEntityAction(formData: FormData) {
 
   try {
     const payload = parseJsonObject(normalizeText(formData.get('payload')))
-    const { supabase, entity, tableName } = await resolveEntityTableOrThrow(entityKey)
+    const { supabase, user, entity, tableName } = await resolveEntityTableOrThrow(entityKey)
 
     if (!entitySupportsCreate(entity)) {
       redirect(getEntityMessagePath(redirectTarget, 'error', `${entity.label} is read-only.`, entityKey, flavorId))
     }
 
-    const { error } = await supabase.from(tableName).insert(payload)
+    const { error } = await supabase.from(tableName).insert(withCreateAuditFields(payload, user.id))
 
     if (error) {
       throw new Error(error.message)
@@ -132,7 +149,7 @@ export async function updateEntityAction(formData: FormData) {
     }
 
     const matchValue = parseMatchValue(normalizeText(formData.get('match_value')))
-    const { supabase, entity, tableName } = await resolveEntityTableOrThrow(entityKey)
+    const { supabase, user, entity, tableName } = await resolveEntityTableOrThrow(entityKey)
 
     if (!entitySupportsUpdate(entity)) {
       redirect(
@@ -142,7 +159,7 @@ export async function updateEntityAction(formData: FormData) {
 
     const { error } = await supabase
       .from(tableName)
-      .update(payload)
+      .update(withUpdateAuditFields(payload, user.id))
       .eq(matchColumn, matchValue)
 
     if (error) {
@@ -218,11 +235,11 @@ export async function reorderHumorFlavorStepAction(formData: FormData) {
       throw new Error('Step order values must be numeric to reorder.')
     }
 
-    const { supabase, entity, tableName } = await resolveEntityTableOrThrow('humor_flavor_steps')
+    const { supabase, user, entity, tableName } = await resolveEntityTableOrThrow('humor_flavor_steps')
 
     const { error: currentUpdateError } = await supabase
       .from(tableName)
-      .update({ [orderColumn]: targetOrder })
+      .update({ [orderColumn]: targetOrder, modified_by_user_id: user.id })
       .eq(currentMatchColumn, currentMatchValue)
 
     if (currentUpdateError) {
@@ -231,14 +248,14 @@ export async function reorderHumorFlavorStepAction(formData: FormData) {
 
     const { error: targetUpdateError } = await supabase
       .from(tableName)
-      .update({ [orderColumn]: currentOrder })
+      .update({ [orderColumn]: currentOrder, modified_by_user_id: user.id })
       .eq(targetMatchColumn, targetMatchValue)
 
     if (targetUpdateError) {
       // Best-effort rollback of the first update.
       await supabase
         .from(tableName)
-        .update({ [orderColumn]: currentOrder })
+        .update({ [orderColumn]: currentOrder, modified_by_user_id: user.id })
         .eq(currentMatchColumn, currentMatchValue)
 
       throw new Error(targetUpdateError.message)
@@ -305,6 +322,8 @@ export async function uploadImageAction(formData: FormData) {
       .insert({
         url: imageUrl,
         profile_id: user.id,
+        created_by_user_id: user.id,
+        modified_by_user_id: user.id,
       })
 
     if (insertError) {
@@ -339,6 +358,8 @@ export async function createImageAction(formData: FormData) {
     .insert({
       url: validatedUrl.toString(),
       profile_id: user.id,
+      created_by_user_id: user.id,
+      modified_by_user_id: user.id,
     })
 
   if (error) {
@@ -350,7 +371,7 @@ export async function createImageAction(formData: FormData) {
 }
 
 export async function updateImageAction(formData: FormData) {
-  const { supabase } = await requireSuperadminOrMatrixAdmin()
+  const { supabase, user } = await requireSuperadminOrMatrixAdmin()
   const id = normalizeText(formData.get('id'))
   const url = normalizeText(formData.get('url'))
 
@@ -367,7 +388,7 @@ export async function updateImageAction(formData: FormData) {
 
   const { error } = await supabase
     .from('images')
-    .update({ url: validatedUrl.toString() })
+    .update({ url: validatedUrl.toString(), modified_by_user_id: user.id })
     .eq('id', id)
 
   if (error) {
