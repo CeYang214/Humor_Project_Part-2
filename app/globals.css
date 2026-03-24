@@ -34,3 +34,58 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Admin theme mode overrides */
+html[data-theme='light'] .admin-theme {
+  background: radial-gradient(circle at top left, #dbeafe 0%, #f8fafc 55%, #eef2ff 100%) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-theme [class*='bg-slate-9'],
+html[data-theme='light'] .admin-theme [class*='bg-slate-8'] {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html[data-theme='light'] .admin-theme [class*='text-slate-1'],
+html[data-theme='light'] .admin-theme [class*='text-slate-2'] {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-theme [class*='text-slate-3'],
+html[data-theme='light'] .admin-theme [class*='text-slate-4'],
+html[data-theme='light'] .admin-theme [class*='text-slate-5'] {
+  color: #475569 !important;
+}
+
+html[data-theme='light'] .admin-theme [class*='border-slate-8'],
+html[data-theme='light'] .admin-theme [class*='border-slate-7'] {
+  border-color: #cbd5e1 !important;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) .admin-theme {
+    background: radial-gradient(circle at top left, #dbeafe 0%, #f8fafc 55%, #eef2ff 100%) !important;
+    color: #0f172a !important;
+  }
+
+  html:not([data-theme]) .admin-theme [class*='bg-slate-9'],
+  html:not([data-theme]) .admin-theme [class*='bg-slate-8'] {
+    background-color: rgba(255, 255, 255, 0.88) !important;
+  }
+
+  html:not([data-theme]) .admin-theme [class*='text-slate-1'],
+  html:not([data-theme]) .admin-theme [class*='text-slate-2'] {
+    color: #0f172a !important;
+  }
+
+  html:not([data-theme]) .admin-theme [class*='text-slate-3'],
+  html:not([data-theme]) .admin-theme [class*='text-slate-4'],
+  html:not([data-theme]) .admin-theme [class*='text-slate-5'] {
+    color: #475569 !important;
+  }
+
+  html:not([data-theme]) .admin-theme [class*='border-slate-8'],
+  html:not([data-theme]) .admin-theme [class*='border-slate-7'] {
+    border-color: #cbd5e1 !important;
+  }
+}
