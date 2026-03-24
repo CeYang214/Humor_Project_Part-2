@@ -168,7 +168,7 @@ export default async function AdminDashboardPage() {
         </p>
         <Link
           href="/admin/operations"
-          className="mt-4 inline-flex rounded-xl border border-cyan-300/40 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
+          className="admin-cta-link mt-4 inline-flex rounded-xl border border-cyan-300/40 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
         >
           Open Full Data Operations
         </Link>
