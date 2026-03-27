@@ -47,7 +47,16 @@ export const ADMIN_ENTITY_DEFINITIONS: AdminEntityDefinition[] = [
     label: 'Humor Mix',
     description: 'Read and update humor mix configuration records.',
     mode: 'read_update',
-    tableCandidates: ['humor_mix', 'humor_mixes'],
+    tableCandidates: [
+      'humor_mix',
+      'humor_mixes',
+      'humor_mix_config',
+      'humor_mix_configs',
+      'humor_mix_configuration',
+      'humor_mix_configurations',
+      'humor_mix_settings',
+      'humor_mix_setting',
+    ],
     rowLimit: 120,
   },
   {
