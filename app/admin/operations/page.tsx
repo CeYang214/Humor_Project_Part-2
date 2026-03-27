@@ -42,7 +42,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
   const bannerMessage = typeof params.message === 'string' ? params.message : ''
 
   return (
-    <div className="space-y-6">
+    <div className="admin-operations-page space-y-6">
       <section className="rounded-2xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 p-5">
         <p className="text-xs uppercase tracking-[0.2em] text-cyan-100/80">Data Operations</p>
         <h2 className="mt-2 text-2xl font-semibold">Admin Database Control Panel</h2>
@@ -54,7 +54,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
             <a
               key={`jump-${snapshot.entity.key}`}
               href={`#entity-${snapshot.entity.key}`}
-              className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+              className="admin-ops-jump-link rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
             >
               {snapshot.entity.label}
             </a>
@@ -141,7 +141,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
                   <div className="md:col-span-4">
                     <button
                       type="submit"
-                      className="rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
+                      className="admin-ops-upload-btn rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
                     >
                       Upload Image
                     </button>
@@ -166,7 +166,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
                   </label>
                   <button
                     type="submit"
-                    className="w-fit rounded-xl border border-cyan-400/70 px-4 py-2 text-sm text-cyan-100 transition hover:bg-cyan-500/20"
+                    className="admin-ops-create-btn w-fit rounded-xl border border-cyan-400/70 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
                   >
                     Create {entity.label}
                   </button>
