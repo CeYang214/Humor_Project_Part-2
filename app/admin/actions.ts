@@ -43,8 +43,10 @@ function normalizeRedirectTarget(value: FormDataEntryValue | null, entityKey?: s
   const raw = normalizeText(value)
   if (raw === '/admin/operations') return raw
 
-  if (raw.startsWith('/admin/operations/')) {
-    const maybeEntityKey = raw.slice('/admin/operations/'.length)
+  const [pathOnly] = raw.split('?')
+
+  if (pathOnly?.startsWith('/admin/operations/')) {
+    const maybeEntityKey = pathOnly.slice('/admin/operations/'.length)
     if (getEntityDefinition(maybeEntityKey)) {
       return raw as AdminRedirectTarget
     }

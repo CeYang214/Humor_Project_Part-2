@@ -23,6 +23,8 @@ interface AdminOperationEntityPageProps {
   searchParams: Promise<{
     status?: string
     message?: string
+    page?: string
+    q?: string
   }>
 }
 
@@ -33,10 +35,24 @@ const EMPTY_CREATE_PAYLOAD = JSON.stringify(
   null,
   2
 )
-const MAX_VISIBLE_ROWS_PER_ENTITY = 20
+const PAGE_SIZE = 20
 
 function stringifyIdentifier(value: unknown) {
   return JSON.stringify(value)
+}
+
+function parsePositiveInt(value: string | undefined, fallback = 1) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback
+  return Math.floor(parsed)
+}
+
+function buildEntityHref(entityKey: string, page: number, query: string) {
+  const params = new URLSearchParams()
+  if (page > 1) params.set('page', String(page))
+  if (query) params.set('q', query)
+  const queryString = params.toString()
+  return queryString ? `/admin/operations/${entityKey}?${queryString}` : `/admin/operations/${entityKey}`
 }
 
 export default async function AdminOperationEntityPage({ params, searchParams }: AdminOperationEntityPageProps) {
@@ -51,9 +67,29 @@ export default async function AdminOperationEntityPage({ params, searchParams }:
   const canCreate = entitySupportsCreate(entity)
   const canUpdate = entitySupportsUpdate(entity)
   const canDelete = entitySupportsDelete(entity)
-  const visibleRows = rows.slice(0, MAX_VISIBLE_ROWS_PER_ENTITY)
-  const hiddenRowCount = Math.max(0, rows.length - visibleRows.length)
-  const returnTo = `/admin/operations/${entity.key}`
+
+  const searchQuery = typeof paramsData.q === 'string' ? paramsData.q.trim() : ''
+  const loweredQuery = searchQuery.toLowerCase()
+  const filteredRows = loweredQuery
+    ? rows.filter((row) => stringifyJson(row).toLowerCase().includes(loweredQuery))
+    : rows
+
+  const totalRows = filteredRows.length
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE))
+  const requestedPage = parsePositiveInt(paramsData.page)
+  const currentPage = Math.min(requestedPage, totalPages)
+  const pageStartIndex = (currentPage - 1) * PAGE_SIZE
+  const visibleRows = filteredRows.slice(pageStartIndex, pageStartIndex + PAGE_SIZE)
+  const pageStartLabel = totalRows === 0 ? 0 : pageStartIndex + 1
+  const pageEndLabel = Math.min(pageStartIndex + visibleRows.length, totalRows)
+
+  const hasPreviousPage = currentPage > 1
+  const hasNextPage = currentPage < totalPages
+  const firstPageHref = buildEntityHref(entity.key, 1, searchQuery)
+  const previousPageHref = buildEntityHref(entity.key, currentPage - 1, searchQuery)
+  const nextPageHref = buildEntityHref(entity.key, currentPage + 1, searchQuery)
+  const lastPageHref = buildEntityHref(entity.key, totalPages, searchQuery)
+  const returnTo = buildEntityHref(entity.key, currentPage, searchQuery)
 
   const bannerStatus = paramsData.status === 'success' ? 'success' : paramsData.status === 'error' ? 'error' : null
   const bannerMessage = typeof paramsData.message === 'string' ? paramsData.message : ''
@@ -176,16 +212,117 @@ export default async function AdminOperationEntityPage({ params, searchParams }:
         )}
 
         <div className="mt-4 space-y-3">
-          {rows.length === 0 && !errorMessage && (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/70 px-4 py-5 text-sm text-slate-400">
-              No rows returned.
-            </div>
-          )}
+          <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <form method="get" className="flex flex-wrap items-end gap-2">
+                <label className="grid gap-1 text-xs text-slate-300">
+                  Search content
+                  <input
+                    name="q"
+                    defaultValue={searchQuery}
+                    placeholder="Search row JSON..."
+                    className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="admin-ops-jump-link rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+                >
+                  Search
+                </button>
+                {searchQuery && (
+                  <Link
+                    href={buildEntityHref(entity.key, 1, '')}
+                    className="admin-ops-jump-link rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+                  >
+                    Clear
+                  </Link>
+                )}
+              </form>
 
-          {hiddenRowCount > 0 && (
-            <div className="admin-ops-info rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-xs text-cyan-100">
-              Showing first {visibleRows.length} rows for layout/performance. {hiddenRowCount} additional row(s) are
-              hidden.
+              <form method="get" className="flex flex-wrap items-end gap-2">
+                {searchQuery && <input type="hidden" name="q" value={searchQuery} />}
+                <label className="grid gap-1 text-xs text-slate-300">
+                  Go to page
+                  <input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    name="page"
+                    defaultValue={currentPage}
+                    className="w-24 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="admin-ops-jump-link rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+                >
+                  Go
+                </button>
+              </form>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+              <span>
+                Showing {pageStartLabel}-{pageEndLabel} of {totalRows} row(s)
+                {searchQuery ? ` (filtered from ${rows.length})` : ''}
+              </span>
+              <span>|</span>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+            </div>
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              {hasPreviousPage ? (
+                <>
+                  <Link
+                    href={firstPageHref}
+                    className="admin-ops-jump-link rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+                  >
+                    First
+                  </Link>
+                  <Link
+                    href={previousPageHref}
+                    className="admin-ops-jump-link rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+                  >
+                    Previous
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span className="rounded-lg border border-slate-800 px-3 py-1.5 text-xs text-slate-500">First</span>
+                  <span className="rounded-lg border border-slate-800 px-3 py-1.5 text-xs text-slate-500">Previous</span>
+                </>
+              )}
+
+              {hasNextPage ? (
+                <>
+                  <Link
+                    href={nextPageHref}
+                    className="admin-ops-jump-link rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+                  >
+                    Next
+                  </Link>
+                  <Link
+                    href={lastPageHref}
+                    className="admin-ops-jump-link rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-200 transition hover:border-cyan-400/60 hover:bg-cyan-500/10"
+                  >
+                    Last
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span className="rounded-lg border border-slate-800 px-3 py-1.5 text-xs text-slate-500">Next</span>
+                  <span className="rounded-lg border border-slate-800 px-3 py-1.5 text-xs text-slate-500">Last</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {filteredRows.length === 0 && !errorMessage && (
+            <div className="rounded-xl border border-slate-800 bg-slate-950/70 px-4 py-5 text-sm text-slate-400">
+              {searchQuery ? 'No rows match the search query.' : 'No rows returned.'}
             </div>
           )}
 
@@ -193,12 +330,13 @@ export default async function AdminOperationEntityPage({ params, searchParams }:
             {visibleRows.map((row, index) => {
               const identifier = pickRowIdentifier(row)
               const rowJson = stringifyJson(row)
+              const rowNumber = pageStartIndex + index + 1
 
               return (
-                <article key={`${entity.key}-row-${index}`} className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+                <article key={`${entity.key}-row-${rowNumber}`} className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs text-slate-400">
-                      Row {index + 1}
+                      Row {rowNumber}
                       {identifier ? ` | ${identifier.column}: ${String(identifier.value)}` : ''}
                     </p>
                   </div>
