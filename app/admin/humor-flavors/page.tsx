@@ -214,7 +214,7 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
             </p>
           </div>
           <Link
-            href="/admin/operations?entity=humor_flavors"
+            href="/admin/operations/humor_flavors"
             className="rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-slate-500"
           >
             Open Generic Operations

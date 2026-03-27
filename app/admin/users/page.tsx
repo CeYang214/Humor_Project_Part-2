@@ -11,13 +11,15 @@ export default async function AdminUsersPage() {
   const profiles = (data ?? []) as ProfileRecord[]
 
   return (
-    <div className="space-y-5">
+    <div className="admin-users-page space-y-5">
       <section>
         <p className="admin-section-kicker text-xs uppercase tracking-[0.2em] text-cyan-200/80">Users / Profiles</p>
-        <h2 className="mt-2 text-2xl font-semibold">Read-Only Profile Directory</h2>
-        <p className="mt-2 text-sm text-slate-300">Browse profiles, inspect superadmin assignments, and audit raw metadata.</p>
+        <h2 className="admin-users-title mt-2 text-2xl font-semibold">Read-Only Profile Directory</h2>
+        <p className="admin-users-subtitle mt-2 text-sm text-slate-300">
+          Browse profiles, inspect superadmin assignments, and audit raw metadata.
+        </p>
         {error && (
-          <div className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+          <div className="admin-warning-banner mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
             Failed to load profiles: {error.message}
           </div>
         )}

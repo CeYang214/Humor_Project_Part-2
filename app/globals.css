@@ -54,7 +54,12 @@ html[data-theme='light'] .admin-theme [class*='text-slate-2'] {
 html[data-theme='light'] .admin-theme [class*='text-slate-3'],
 html[data-theme='light'] .admin-theme [class*='text-slate-4'],
 html[data-theme='light'] .admin-theme [class*='text-slate-5'] {
-  color: #475569 !important;
+  color: #334155 !important;
+}
+
+html[data-theme='light'] .admin-theme [class*='text-cyan-1'],
+html[data-theme='light'] .admin-theme [class*='text-cyan-2'] {
+  color: #0f766e !important;
 }
 
 html[data-theme='light'] .admin-theme [class*='border-slate-8'],
@@ -90,6 +95,28 @@ html[data-theme='light'] .admin-theme .admin-nav-link-active {
   color: #155e75 !important;
   background-color: rgba(34, 211, 238, 0.2) !important;
   box-shadow: inset 0 0 0 1px rgba(8, 145, 178, 0.4) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-sidebar-link {
+  color: #334155 !important;
+  border-color: #94a3b8 !important;
+  background-color: rgba(255, 255, 255, 0.86) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-sidebar-link:hover {
+  color: #0f172a !important;
+  border-color: #64748b !important;
+  background-color: rgba(241, 245, 249, 0.95) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-signout-btn {
+  color: #9f1239 !important;
+  border-color: rgba(190, 24, 93, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-signout-btn:hover {
+  background-color: rgba(244, 63, 94, 0.16) !important;
 }
 
 html[data-theme='light'] .admin-theme .admin-theme-mode-btn {
@@ -191,6 +218,72 @@ html[data-theme='light'] .admin-theme .admin-image-delete-btn:hover {
   background-color: rgba(244, 63, 94, 0.14) !important;
 }
 
+html[data-theme='light'] .admin-theme .admin-users-title {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-subtitle {
+  color: #334155 !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-summary {
+  border-color: #cbd5e1 !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-count {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-subcount {
+  color: #334155 !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-search {
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-search::placeholder {
+  color: #64748b !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-table-wrap {
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-thead {
+  background-color: rgba(241, 245, 249, 0.95) !important;
+  color: #334155 !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-tbody {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-name {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-id,
+html[data-theme='light'] .admin-theme .admin-users-email,
+html[data-theme='light'] .admin-theme .admin-users-date,
+html[data-theme='light'] .admin-theme .admin-users-empty {
+  color: #334155 !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-standard-badge {
+  color: #334155 !important;
+  background-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-users-raw {
+  color: #334155 !important;
+  background-color: rgba(248, 250, 252, 0.96) !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
 @media (prefers-color-scheme: light) {
   html:not([data-theme]) .admin-theme {
     background: radial-gradient(circle at top left, #dbeafe 0%, #f8fafc 55%, #eef2ff 100%) !important;
@@ -210,7 +303,12 @@ html[data-theme='light'] .admin-theme .admin-image-delete-btn:hover {
   html:not([data-theme]) .admin-theme [class*='text-slate-3'],
   html:not([data-theme]) .admin-theme [class*='text-slate-4'],
   html:not([data-theme]) .admin-theme [class*='text-slate-5'] {
-    color: #475569 !important;
+    color: #334155 !important;
+  }
+
+  html:not([data-theme]) .admin-theme [class*='text-cyan-1'],
+  html:not([data-theme]) .admin-theme [class*='text-cyan-2'] {
+    color: #0f766e !important;
   }
 
   html:not([data-theme]) .admin-theme [class*='border-slate-8'],
@@ -246,6 +344,28 @@ html[data-theme='light'] .admin-theme .admin-image-delete-btn:hover {
     color: #155e75 !important;
     background-color: rgba(34, 211, 238, 0.2) !important;
     box-shadow: inset 0 0 0 1px rgba(8, 145, 178, 0.4) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-sidebar-link {
+    color: #334155 !important;
+    border-color: #94a3b8 !important;
+    background-color: rgba(255, 255, 255, 0.86) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-sidebar-link:hover {
+    color: #0f172a !important;
+    border-color: #64748b !important;
+    background-color: rgba(241, 245, 249, 0.95) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-signout-btn {
+    color: #9f1239 !important;
+    border-color: rgba(190, 24, 93, 0.5) !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-signout-btn:hover {
+    background-color: rgba(244, 63, 94, 0.16) !important;
   }
 
   html:not([data-theme]) .admin-theme .admin-theme-mode-btn {
@@ -345,5 +465,71 @@ html[data-theme='light'] .admin-theme .admin-image-delete-btn:hover {
 
   html:not([data-theme]) .admin-theme .admin-image-delete-btn:hover {
     background-color: rgba(244, 63, 94, 0.14) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-title {
+    color: #0f172a !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-subtitle {
+    color: #334155 !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-summary {
+    border-color: #cbd5e1 !important;
+    background-color: rgba(255, 255, 255, 0.92) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-count {
+    color: #0f172a !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-subcount {
+    color: #334155 !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-search {
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-search::placeholder {
+    color: #64748b !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-table-wrap {
+    border-color: #cbd5e1 !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-thead {
+    background-color: rgba(241, 245, 249, 0.95) !important;
+    color: #334155 !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-tbody {
+    background-color: rgba(255, 255, 255, 0.94) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-name {
+    color: #0f172a !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-id,
+  html:not([data-theme]) .admin-theme .admin-users-email,
+  html:not([data-theme]) .admin-theme .admin-users-date,
+  html:not([data-theme]) .admin-theme .admin-users-empty {
+    color: #334155 !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-standard-badge {
+    color: #334155 !important;
+    background-color: rgba(226, 232, 240, 0.9) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-users-raw {
+    color: #334155 !important;
+    background-color: rgba(248, 250, 252, 0.96) !important;
+    border: 1px solid #cbd5e1 !important;
   }
 }

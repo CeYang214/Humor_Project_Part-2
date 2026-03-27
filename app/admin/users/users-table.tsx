@@ -51,23 +51,23 @@ export function UsersTable({ profiles }: UsersTableProps) {
   const superadminCount = profiles.filter((profile) => getBoolean(profile, 'is_superadmin')).length
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="admin-users-table space-y-4">
+      <div className="admin-users-summary flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-slate-300">{profiles.length} profiles loaded</p>
-          <p className="text-xs text-slate-400">{superadminCount} superadmins</p>
+          <p className="admin-users-count text-sm text-slate-300">{profiles.length} profiles loaded</p>
+          <p className="admin-users-subcount text-xs text-slate-400">{superadminCount} superadmins</p>
         </div>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search by id, name, email..."
-          className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none sm:w-80"
+          className="admin-users-search w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none sm:w-80"
         />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-800">
+      <div className="admin-users-table-wrap overflow-x-auto rounded-2xl border border-slate-800">
         <table className="min-w-full divide-y divide-slate-800 text-sm">
-          <thead className="bg-slate-900/70 text-left text-xs uppercase tracking-[0.14em] text-slate-400">
+          <thead className="admin-users-thead bg-slate-900/70 text-left text-xs uppercase tracking-[0.14em] text-slate-400">
             <tr>
               <th className="px-3 py-3">Profile</th>
               <th className="px-3 py-3">Email</th>
@@ -76,7 +76,7 @@ export function UsersTable({ profiles }: UsersTableProps) {
               <th className="px-3 py-3">Raw Data</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 bg-slate-950/70">
+          <tbody className="admin-users-tbody divide-y divide-slate-800 bg-slate-950/70">
             {filteredProfiles.map((profile) => {
               const id = getString(profile, ['id']) || '(unknown id)'
               const name = getString(profile, ['full_name', 'display_name', 'username']) || 'Unnamed'
@@ -87,26 +87,26 @@ export function UsersTable({ profiles }: UsersTableProps) {
               return (
                 <tr key={id} className="align-top">
                   <td className="px-3 py-3">
-                    <p className="font-medium text-slate-100">{name}</p>
-                    <p className="max-w-[24ch] truncate text-xs text-slate-400" title={id}>
+                    <p className="admin-users-name font-medium text-slate-100">{name}</p>
+                    <p className="admin-users-id max-w-[24ch] truncate text-xs text-slate-400" title={id}>
                       {id}
                     </p>
                   </td>
-                  <td className="px-3 py-3 text-slate-200">{email}</td>
+                  <td className="admin-users-email px-3 py-3 text-slate-200">{email}</td>
                   <td className="px-3 py-3">
                     <span
                       className={`inline-flex rounded-full px-2 py-1 text-xs ${
                         isSuperadmin
                           ? 'admin-super-badge bg-cyan-500/20 text-cyan-200'
-                          : 'bg-slate-800 text-slate-300'
+                          : 'admin-standard-badge bg-slate-800 text-slate-300'
                       }`}
                     >
                       {isSuperadmin ? 'superadmin' : 'standard'}
                     </span>
                   </td>
-                  <td className="px-3 py-3 text-slate-300">{formatDate(created)}</td>
+                  <td className="admin-users-date px-3 py-3 text-slate-300">{formatDate(created)}</td>
                   <td className="px-3 py-3">
-                    <pre className="max-w-[36ch] overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-slate-900 p-2 text-xs text-slate-400">
+                    <pre className="admin-users-raw max-w-[36ch] overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-slate-900 p-2 text-xs text-slate-400">
                       {JSON.stringify(profile, null, 2)}
                     </pre>
                   </td>
@@ -115,7 +115,7 @@ export function UsersTable({ profiles }: UsersTableProps) {
             })}
             {filteredProfiles.length === 0 && (
               <tr>
-                <td className="px-3 py-8 text-center text-slate-400" colSpan={5}>
+                <td className="admin-users-empty px-3 py-8 text-center text-slate-400" colSpan={5}>
                   No profiles match your search.
                 </td>
               </tr>

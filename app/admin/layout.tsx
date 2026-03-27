@@ -26,14 +26,14 @@ export default async function AdminLayout({
           <div className="mt-6 grid gap-2">
             <Link
               href="/protected"
-              className="rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white"
+              className="admin-sidebar-link rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white"
             >
               Back to Caption Tool
             </Link>
             <form action={signOutAdminAction}>
               <button
                 type="submit"
-                className="w-full rounded-xl border border-rose-500/50 px-3 py-2 text-sm text-rose-100 transition hover:bg-rose-500/20"
+                className="admin-signout-btn w-full rounded-xl border border-rose-500/50 px-3 py-2 text-sm text-rose-100 transition hover:bg-rose-500/20"
               >
                 Sign Out
               </button>
