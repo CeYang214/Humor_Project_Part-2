@@ -115,6 +115,30 @@ html[data-theme='light'] .admin-theme .admin-ops-info {
   background-color: rgba(34, 211, 238, 0.12) !important;
 }
 
+html[data-theme='light'] .admin-theme .admin-section-kicker {
+  color: #0f766e !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-ops-update-btn {
+  color: #155e75 !important;
+  border-color: rgba(14, 116, 144, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-ops-update-btn:hover {
+  background-color: rgba(14, 116, 144, 0.14) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-ops-delete-btn {
+  color: #9f1239 !important;
+  border-color: rgba(190, 24, 93, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html[data-theme='light'] .admin-theme .admin-ops-delete-btn:hover {
+  background-color: rgba(244, 63, 94, 0.16) !important;
+}
+
 html[data-theme='light'] .admin-theme .admin-image-update-btn {
   color: #0e7490 !important;
   border-color: rgba(14, 116, 144, 0.4) !important;
@@ -213,6 +237,30 @@ html[data-theme='light'] .admin-theme .admin-image-delete-btn:hover {
     color: #155e75 !important;
     border-color: rgba(8, 145, 178, 0.3) !important;
     background-color: rgba(34, 211, 238, 0.12) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-section-kicker {
+    color: #0f766e !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-ops-update-btn {
+    color: #155e75 !important;
+    border-color: rgba(14, 116, 144, 0.5) !important;
+    background-color: rgba(255, 255, 255, 0.88) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-ops-update-btn:hover {
+    background-color: rgba(14, 116, 144, 0.14) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-ops-delete-btn {
+    color: #9f1239 !important;
+    border-color: rgba(190, 24, 93, 0.5) !important;
+    background-color: rgba(255, 255, 255, 0.88) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-ops-delete-btn:hover {
+    background-color: rgba(244, 63, 94, 0.16) !important;
   }
 
   html:not([data-theme]) .admin-theme .admin-image-update-btn {

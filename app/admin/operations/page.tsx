@@ -224,7 +224,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
                         </label>
                         <button
                           type="submit"
-                          className="w-fit rounded-xl border border-cyan-500/70 px-3 py-2 text-sm text-cyan-100 transition hover:bg-cyan-500/20"
+                          className="admin-ops-update-btn w-fit rounded-xl border border-cyan-500/70 px-3 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
                         >
                           Update Row
                         </button>
@@ -238,7 +238,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
                         <input type="hidden" name="match_value" value={stringifyIdentifier(identifier.value)} />
                         <button
                           type="submit"
-                          className="rounded-xl border border-rose-500/60 px-3 py-2 text-sm text-rose-100 transition hover:bg-rose-500/20"
+                          className="admin-ops-delete-btn rounded-xl border border-rose-500/60 px-3 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20"
                         >
                           Delete Row
                         </button>

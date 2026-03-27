@@ -13,7 +13,7 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-5">
       <section>
-        <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">Users / Profiles</p>
+        <p className="admin-section-kicker text-xs uppercase tracking-[0.2em] text-cyan-200/80">Users / Profiles</p>
         <h2 className="mt-2 text-2xl font-semibold">Read-Only Profile Directory</h2>
         <p className="mt-2 text-sm text-slate-300">Browse profiles, inspect superadmin assignments, and audit raw metadata.</p>
         {error && (
