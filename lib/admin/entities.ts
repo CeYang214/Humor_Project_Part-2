@@ -142,7 +142,14 @@ export const ADMIN_ENTITY_DEFINITIONS: AdminEntityDefinition[] = [
     label: 'Whitelisted E-mail Addresses',
     description: 'Create, read, update, delete whitelisted e-mail rows.',
     mode: 'crud',
-    tableCandidates: ['whitelisted_email_addresses', 'whitelisted_emails', 'whitelisted_email_address'],
+    tableCandidates: [
+      'whitelist_email_addresses',
+      'whitelisted_email_addresses',
+      'whitelisted_emails',
+      'whitelisted_email_address',
+      'whitelist_email_address',
+      'whitelist_emails',
+    ],
     rowLimit: 200,
   },
 ]

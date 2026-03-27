@@ -100,7 +100,7 @@ export default async function AdminOperationsPage({ searchParams }: AdminOperati
             </div>
 
             {errorMessage && (
-              <div className="mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+              <div className="admin-warning-banner mt-3 rounded-xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
                 {errorMessage}
               </div>
             )}

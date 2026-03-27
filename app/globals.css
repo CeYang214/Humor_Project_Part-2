@@ -115,6 +115,12 @@ html[data-theme='light'] .admin-theme .admin-ops-info {
   background-color: rgba(34, 211, 238, 0.12) !important;
 }
 
+html[data-theme='light'] .admin-theme .admin-warning-banner {
+  color: #92400e !important;
+  border-color: rgba(217, 119, 6, 0.45) !important;
+  background-color: rgba(254, 243, 199, 0.92) !important;
+}
+
 html[data-theme='light'] .admin-theme .admin-section-kicker {
   color: #0f766e !important;
 }
@@ -237,6 +243,12 @@ html[data-theme='light'] .admin-theme .admin-image-delete-btn:hover {
     color: #155e75 !important;
     border-color: rgba(8, 145, 178, 0.3) !important;
     background-color: rgba(34, 211, 238, 0.12) !important;
+  }
+
+  html:not([data-theme]) .admin-theme .admin-warning-banner {
+    color: #92400e !important;
+    border-color: rgba(217, 119, 6, 0.45) !important;
+    background-color: rgba(254, 243, 199, 0.92) !important;
   }
 
   html:not([data-theme]) .admin-theme .admin-section-kicker {
