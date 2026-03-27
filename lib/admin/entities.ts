@@ -50,6 +50,12 @@ export const ADMIN_ENTITY_DEFINITIONS: AdminEntityDefinition[] = [
     tableCandidates: [
       'humor_mix',
       'humor_mixes',
+      'humor_flavor_mix',
+      'humor_flavor_mixes',
+      'humor_flavormix',
+      'humor_flavormixes',
+      'flavor_mix',
+      'flavor_mixes',
       'humor_mix_config',
       'humor_mix_configs',
       'humor_mix_configuration',
