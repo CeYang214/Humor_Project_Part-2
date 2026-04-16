@@ -2,8 +2,9 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 interface Caption {
   id: string
@@ -53,7 +54,7 @@ export default function Home() {
   const [voteMessage, setVoteMessage] = useState<Record<string, string>>({})
   const captionsPerPage = 36
 
-  async function fetchCaptions() {
+  const fetchCaptions = useCallback(async () => {
     setLoading(true)
 
     try {
@@ -148,11 +149,11 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, supabase])
 
   useEffect(() => {
     void fetchCaptions()
-  }, [currentPage])
+  }, [fetchCaptions])
 
   useEffect(() => {
     setPageInput(String(currentPage))
@@ -467,9 +468,12 @@ const CaptionCard: React.FC<CaptionCardProps> = ({ caption, canVote, userVote, s
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:scale-105">
       {caption.imageUrl && !imageError ? (
-        <img
+        <Image
           src={caption.imageUrl}
           alt={`Image for caption: ${(caption.content || '').slice(0, 30)}`}
+          width={640}
+          height={384}
+          unoptimized
           className="w-full h-48 object-cover"
           onError={handleImageError}
         />

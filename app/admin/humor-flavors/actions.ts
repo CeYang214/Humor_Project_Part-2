@@ -4,12 +4,16 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import {
+  FLAVOR_NAME_COLUMN_CANDIDATES,
   HUMOR_FLAVOR_STEP_TABLE_CANDIDATES,
   HUMOR_FLAVOR_TABLE_CANDIDATES,
   STEP_FLAVOR_COLUMN_CANDIDATES,
   STEP_ORDER_COLUMN_CANDIDATES,
   asCleanString,
   parseJsonObjectOrThrow,
+  pickFirstExistingColumn,
+  pickFlavorName,
+  pickIdentifierColumn,
   pickStepOrderValue,
   resolveFirstExistingTable,
   sortStepsByOrder,
@@ -52,6 +56,26 @@ function withUpdateAuditFields(payload: Record<string, unknown>, userId: string)
     ...payload,
     modified_by_user_id: userId,
   }
+}
+
+const DUPLICATE_EXCLUDED_COLUMNS = [
+  'id',
+  'created_at',
+  'created_datetime_utc',
+  'created_date',
+  'created_on',
+  'modified_at',
+  'modified_datetime_utc',
+  'updated_at',
+  'updated_datetime_utc',
+]
+
+function stripDuplicateSystemColumns(row: Record<string, unknown>, idColumn: string) {
+  const payload = { ...row }
+  for (const key of new Set([...DUPLICATE_EXCLUDED_COLUMNS, idColumn])) {
+    delete payload[key]
+  }
+  return payload
 }
 
 async function resolveFlavorTableOrThrow() {
@@ -161,6 +185,131 @@ export async function deleteHumorFlavorAction(formData: FormData) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to delete humor flavor.'
     redirect(getMessagePath('error', message, flavorId))
+  }
+}
+
+export async function duplicateHumorFlavorAction(formData: FormData) {
+  const sourceFlavorId = normalizeText(formData.get('source_flavor_id'))
+  const sourceFlavorName = normalizeText(formData.get('source_flavor_name'))
+  const newFlavorName = normalizeText(formData.get('new_flavor_name'))
+  const idColumn = normalizeText(formData.get('id_column')) || 'id'
+  const suppliedFlavorNameColumn = normalizeText(formData.get('flavor_name_column'))
+  const suppliedStepFlavorColumn = normalizeText(formData.get('step_flavor_column'))
+  const suppliedStepIdColumn = normalizeText(formData.get('step_id_column'))
+  const suppliedStepOrderColumn = normalizeText(formData.get('step_order_column'))
+
+  try {
+    if (!sourceFlavorId) {
+      throw new Error('Source flavor id is required.')
+    }
+
+    if (!newFlavorName) {
+      throw new Error('New flavor name is required.')
+    }
+
+    const { supabase, user, tableName: flavorTableName } = await resolveFlavorTableOrThrow()
+    const stepResolution = await resolveFirstExistingTable(supabase, HUMOR_FLAVOR_STEP_TABLE_CANDIDATES)
+    if (!stepResolution.tableName) {
+      throw new Error(stepResolution.errorMessage ?? 'Unable to find humor flavor steps table.')
+    }
+    const stepTableName = stepResolution.tableName
+
+    const { data: flavorRowsData, error: flavorRowsError } = await supabase.from(flavorTableName).select('*').limit(2000)
+    if (flavorRowsError) {
+      throw new Error(flavorRowsError.message)
+    }
+    const flavorRows = (flavorRowsData ?? []) as Record<string, unknown>[]
+
+    const flavorNameColumn = suppliedFlavorNameColumn || pickFirstExistingColumn(flavorRows, FLAVOR_NAME_COLUMN_CANDIDATES) || 'name'
+    const duplicateExists = flavorRows.some(
+      (row) => asCleanString(row[flavorNameColumn]).toLowerCase() === newFlavorName.toLowerCase()
+    )
+    if (duplicateExists) {
+      throw new Error(`Flavor name "${newFlavorName}" already exists. Choose a different name.`)
+    }
+
+    let sourceFlavorRow = flavorRows.find((row) => asCleanString(row[idColumn]) === sourceFlavorId) ?? null
+    if (!sourceFlavorRow) {
+      const { data: fallbackRow, error: fallbackError } = await supabase
+        .from(flavorTableName)
+        .select('*')
+        .eq(idColumn, parseMaybeJson(sourceFlavorId))
+        .limit(1)
+        .maybeSingle()
+
+      if (fallbackError) {
+        throw new Error(fallbackError.message)
+      }
+      sourceFlavorRow = (fallbackRow as Record<string, unknown> | null) ?? null
+    }
+
+    if (!sourceFlavorRow) {
+      throw new Error('Source flavor was not found.')
+    }
+
+    const sourceFlavorDisplayName = sourceFlavorName || pickFlavorName(sourceFlavorRow)
+    const duplicateFlavorPayload = stripDuplicateSystemColumns(sourceFlavorRow, idColumn)
+    duplicateFlavorPayload[flavorNameColumn] = newFlavorName
+
+    const { data: insertedFlavor, error: insertFlavorError } = await supabase
+      .from(flavorTableName)
+      .insert(withCreateAuditFields(duplicateFlavorPayload, user.id))
+      .select('*')
+      .limit(1)
+      .maybeSingle()
+
+    if (insertFlavorError) {
+      throw new Error(insertFlavorError.message)
+    }
+
+    const newFlavorId = asCleanString(insertedFlavor?.[idColumn] ?? insertedFlavor?.id)
+    if (!newFlavorId) {
+      throw new Error('Duplicate flavor created, but the new flavor id could not be determined.')
+    }
+
+    const { data: stepRowsData, error: stepRowsError } = await supabase.from(stepTableName).select('*').limit(3000)
+    if (stepRowsError) {
+      await supabase.from(flavorTableName).delete().eq(idColumn, parseMaybeJson(newFlavorId))
+      throw new Error(stepRowsError.message)
+    }
+
+    const stepRows = (stepRowsData ?? []) as Record<string, unknown>[]
+    const stepFlavorColumn = suppliedStepFlavorColumn || STEP_FLAVOR_COLUMN_CANDIDATES.find((candidate) => stepRows.some((row) => candidate in row)) || 'humor_flavor_id'
+    const stepIdColumn = suppliedStepIdColumn || pickIdentifierColumn(stepRows)
+    const stepOrderColumn = suppliedStepOrderColumn || STEP_ORDER_COLUMN_CANDIDATES.find((candidate) => stepRows.some((row) => candidate in row)) || 'step_order'
+
+    const sourceSteps = sortStepsByOrder(
+      stepRows.filter((row) => {
+        if (!(stepFlavorColumn in row)) return false
+        const value = asCleanString(row[stepFlavorColumn])
+        return value === sourceFlavorId || value === sourceFlavorDisplayName
+      }),
+      stepOrderColumn
+    )
+
+    if (sourceSteps.length > 0) {
+      const clonedStepPayloads = sourceSteps.map((row) => {
+        const payload = stripDuplicateSystemColumns(row, stepIdColumn)
+        const existingStepFlavorRef = asCleanString(row[stepFlavorColumn])
+        payload[stepFlavorColumn] =
+          existingStepFlavorRef === sourceFlavorDisplayName && sourceFlavorDisplayName
+            ? newFlavorName
+            : parseMaybeJson(newFlavorId)
+        return withCreateAuditFields(payload, user.id)
+      })
+
+      const { error: insertStepsError } = await supabase.from(stepTableName).insert(clonedStepPayloads)
+      if (insertStepsError) {
+        await supabase.from(flavorTableName).delete().eq(idColumn, parseMaybeJson(newFlavorId))
+        throw new Error(`Failed to duplicate flavor steps: ${insertStepsError.message}`)
+      }
+    }
+
+    revalidateAdminRoutes()
+    redirect(getMessagePath('success', `Flavor duplicated with ${sourceSteps.length} step(s).`, newFlavorId))
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to duplicate humor flavor.'
+    redirect(getMessagePath('error', message, sourceFlavorId))
   }
 }
 

@@ -132,12 +132,30 @@ export default async function AdminDashboardPage() {
     }))
 
   const voteScoreByCaption = new Map<string, number>()
+  const voteCountByCaption = new Map<string, number>()
+  let upVoteCount = 0
+  let downVoteCount = 0
+  let neutralVoteCount = 0
   for (const vote of votes) {
     if (!vote.caption_id || typeof vote.vote_value !== 'number') continue
     voteScoreByCaption.set(vote.caption_id, (voteScoreByCaption.get(vote.caption_id) ?? 0) + vote.vote_value)
+    voteCountByCaption.set(vote.caption_id, (voteCountByCaption.get(vote.caption_id) ?? 0) + 1)
+
+    if (vote.vote_value > 0) {
+      upVoteCount += 1
+    } else if (vote.vote_value < 0) {
+      downVoteCount += 1
+    } else {
+      neutralVoteCount += 1
+    }
   }
 
   const captionById = new Map(captions.map((caption) => [caption.id, caption]))
+  const ratedCaptionCount = voteCountByCaption.size
+  const unratedCaptionCount = Math.max(totalCaptions - ratedCaptionCount, 0)
+  const ratedCoveragePercent = totalCaptions > 0 ? (ratedCaptionCount / totalCaptions) * 100 : 0
+  const averageVotesPerRatedCaption = ratedCaptionCount > 0 ? totalVotes / ratedCaptionCount : 0
+  const positiveVotePercent = totalVotes > 0 ? (upVoteCount / totalVotes) * 100 : 0
 
   const topRatedCaptions = [...voteScoreByCaption.entries()]
     .sort((a, b) => b[1] - a[1])
@@ -147,6 +165,20 @@ export default async function AdminDashboardPage() {
       return {
         captionId,
         score,
+        voteCount: voteCountByCaption.get(captionId) ?? 0,
+        content: caption?.content?.trim() || '(No caption content)',
+      }
+    })
+
+  const mostRatedCaptions = [...voteCountByCaption.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([captionId, voteCount]) => {
+      const caption = captionById.get(captionId)
+      return {
+        captionId,
+        voteCount,
+        score: voteScoreByCaption.get(captionId) ?? 0,
         content: caption?.content?.trim() || '(No caption content)',
       }
     })
@@ -198,7 +230,7 @@ export default async function AdminDashboardPage() {
         <article className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Votes</p>
           <p className="mt-2 text-3xl font-semibold">{totalVotes}</p>
-          <p className="mt-1 text-xs text-slate-400">Ratings recorded</p>
+          <p className="mt-1 text-xs text-slate-400">{upVoteCount} up / {downVoteCount} down</p>
         </article>
         <article className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Density</p>
@@ -256,6 +288,63 @@ export default async function AdminDashboardPage() {
         </article>
       </section>
 
+      <section className="grid gap-5 xl:grid-cols-3">
+        <article className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
+          <h3 className="text-lg font-semibold">Rated Caption Coverage</h3>
+          <p className="mt-2 text-sm text-slate-300">
+            {ratedCaptionCount} rated / {totalCaptions} total captions
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            {formatPercent(ratedCoveragePercent)} of captions have at least one user rating.
+          </p>
+          <div className="mt-3 h-3 rounded-full bg-slate-800">
+            <div
+              className="h-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-400"
+              style={{ width: `${ratedCaptionCount > 0 ? Math.min(100, Math.max(4, Math.round(ratedCoveragePercent))) : 0}%` }}
+            />
+          </div>
+          <p className="mt-3 text-xs text-slate-400">
+            Avg votes per rated caption: {averageVotesPerRatedCaption.toFixed(2)}
+          </p>
+          <p className="mt-1 text-xs text-slate-400">Unrated captions: {unratedCaptionCount}</p>
+        </article>
+
+        <article className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
+          <h3 className="text-lg font-semibold">Vote Polarity</h3>
+          <div className="mt-4 space-y-3 text-sm">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+              <p className="text-slate-300">Positive votes</p>
+              <p className="mt-1 text-xl font-semibold text-emerald-200">{upVoteCount}</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+              <p className="text-slate-300">Negative votes</p>
+              <p className="mt-1 text-xl font-semibold text-rose-200">{downVoteCount}</p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+              <p className="text-slate-300">Neutral votes</p>
+              <p className="mt-1 text-xl font-semibold text-slate-200">{neutralVoteCount}</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-slate-400">Positive share: {formatPercent(positiveVotePercent)}</p>
+        </article>
+
+        <article className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
+          <h3 className="text-lg font-semibold">Most Rated Captions</h3>
+          <div className="mt-4 space-y-3">
+            {mostRatedCaptions.length === 0 && <p className="text-sm text-slate-400">No votes yet.</p>}
+            {mostRatedCaptions.map((caption) => (
+              <div key={caption.captionId} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+                <p className="text-sm text-slate-100">{caption.content}</p>
+                <p className="mt-2 text-xs text-cyan-200">Votes: {caption.voteCount} | Score: {caption.score}</p>
+                <p className="mt-1 truncate text-[11px] text-slate-400" title={caption.captionId}>
+                  {caption.captionId}
+                </p>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
       <section className="grid gap-5 xl:grid-cols-2">
         <article className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
           <h3 className="text-lg font-semibold">Most Captioned Images</h3>
@@ -297,7 +386,7 @@ export default async function AdminDashboardPage() {
             {topRatedCaptions.map((caption) => (
               <div key={caption.captionId} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
                 <p className="text-sm text-slate-100">{caption.content}</p>
-                <p className="mt-2 text-xs text-cyan-200">Score: {caption.score}</p>
+                <p className="mt-2 text-xs text-cyan-200">Score: {caption.score} | Votes: {caption.voteCount}</p>
                 <p className="mt-1 truncate text-[11px] text-slate-400" title={caption.captionId}>
                   {caption.captionId}
                 </p>

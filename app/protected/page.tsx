@@ -544,9 +544,12 @@ export default function ProtectedPage() {
                   <p className="text-sky-100">Registered image URL:</p>
                   <p className="mt-1 break-all text-sky-200">{uploadedImageUrl}</p>
                   <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-black/40">
-                    <img
+                    <Image
                       src={uploadedImageUrl}
                       alt="Uploaded image from saved history"
+                      width={1200}
+                      height={800}
+                      unoptimized
                       className="h-auto max-h-[28rem] w-full object-contain"
                       loading="lazy"
                     />

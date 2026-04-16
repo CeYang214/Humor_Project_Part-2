@@ -38,12 +38,14 @@ How to get your ID quickly:
 
 This updates data only (not policies), so it respects the assignment constraint.
 
-## Deployment Notes (Manual Step)
+## Submissions
 
-I pushed commit `903db315ee6f9576f6feaa68dd491aefc70ba5a7` to `main`.
-
-To finish submission in Vercel:
-1. Deploy/update your **caption creation + rating app** from this commit.
-2. Deploy/update your **admin area app** from this commit (or from the admin-focused project if you split repos).
-3. In each Vercel project, set **Deployment Protection** to **Off** so Incognito access works.
-4. Copy the two commit-specific deployment URLs into your submission.
+- Caption creation + rating app  
+  Commit: `d1d9d26a8c79224112d2d6d3129330e4af2af0d8`  
+  URL: https://vercel.com/cecilia-yangs-projects/humor-project-hello-world/8zrt6HyZaMa8CFAgarhikJT1b5GK
+- Admin area app  
+  Commit: `4b7ca458e2776f719a04409f3ee359099b1b81b9`  
+  URL: https://vercel.com/cecilia-yangs-projects/humor-project-part-3/3Q6ksV5zxvrWKmnGYywCEwAr9p1G
+- Prompt chain tool app  
+  Commit: `fb54787500d25c06e8ce95fd44b4db50f868d45c`  
+  URL: https://vercel.com/cecilia-yangs-projects/humor-project-part-2/8V5nWaoQRuEa52EiifF36Ux2g1qG

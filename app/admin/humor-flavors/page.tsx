@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {
   createHumorFlavorAction,
   createHumorFlavorStepAction,
+  duplicateHumorFlavorAction,
   deleteHumorFlavorAction,
   deleteHumorFlavorStepAction,
   moveHumorFlavorStepAction,
@@ -13,6 +14,7 @@ import { FlavorTester } from '@/app/admin/humor-flavors/flavor-tester'
 import {
   CAPTION_FLAVOR_COLUMN_CANDIDATES,
   FLAVOR_DESCRIPTION_COLUMN_CANDIDATES,
+  FLAVOR_NAME_COLUMN_CANDIDATES,
   HUMOR_FLAVOR_STEP_TABLE_CANDIDATES,
   HUMOR_FLAVOR_TABLE_CANDIDATES,
   STEP_FLAVOR_COLUMN_CANDIDATES,
@@ -110,6 +112,7 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
   const stepFlavorColumn = pickFirstExistingColumn(stepRows, STEP_FLAVOR_COLUMN_CANDIDATES) ?? 'humor_flavor_id'
   const stepOrderColumn = pickFirstExistingColumn(stepRows, STEP_ORDER_COLUMN_CANDIDATES) ?? 'step_order'
   const stepPromptColumn = pickFirstExistingColumn(stepRows, STEP_PROMPT_COLUMN_CANDIDATES) ?? 'prompt'
+  const flavorNameColumn = pickFirstExistingColumn(flavorRows, FLAVOR_NAME_COLUMN_CANDIDATES) ?? 'name'
   const flavorDescriptionColumn = pickFirstExistingColumn(flavorRows, FLAVOR_DESCRIPTION_COLUMN_CANDIDATES) ?? 'description'
 
   const selectedFlavorFromQuery = asCleanString(params.flavor)
@@ -298,6 +301,32 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
                       Update Flavor
                     </button>
                   </div>
+                </form>
+
+                <form action={duplicateHumorFlavorAction} className="mt-2 grid gap-2 sm:grid-cols-[minmax(220px,1fr)_auto] sm:items-end">
+                  <input type="hidden" name="source_flavor_id" value={flavorId} />
+                  <input type="hidden" name="source_flavor_name" value={label} />
+                  <input type="hidden" name="id_column" value={flavorIdColumn} />
+                  <input type="hidden" name="flavor_name_column" value={flavorNameColumn} />
+                  <input type="hidden" name="step_flavor_column" value={stepFlavorColumn} />
+                  <input type="hidden" name="step_id_column" value={stepIdColumn} />
+                  <input type="hidden" name="step_order_column" value={stepOrderColumn} />
+                  <label className="grid gap-1 text-xs text-slate-300">
+                    Duplicate as new flavor name
+                    <input
+                      type="text"
+                      name="new_flavor_name"
+                      required
+                      defaultValue={`${label} Copy`}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-cyan-500/60 px-3 py-2 text-xs text-cyan-100 transition hover:bg-cyan-500/20"
+                  >
+                    Duplicate Flavor + Steps
+                  </button>
                 </form>
 
                 <form action={deleteHumorFlavorAction} className="mt-2">
