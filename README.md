@@ -49,3 +49,6 @@ This updates data only (not policies), so it respects the assignment constraint.
 - Prompt chain tool app  
   Commit: `fb54787500d25c06e8ce95fd44b4db50f868d45c`  
   URL: https://vercel.com/cecilia-yangs-projects/humor-project-part-2/8V5nWaoQRuEa52EiifF36Ux2g1qG
+
+Full QA plan + post-testing write-up:
+- `SUBMISSION.md`
