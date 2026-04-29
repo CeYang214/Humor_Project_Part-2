@@ -13,7 +13,7 @@ import {
   entitySupportsUpdate,
   getEntityDefinition,
 } from '@/lib/admin/entities'
-import { loadEntitySnapshot, pickRowIdentifier, stringifyJson } from '@/lib/admin/table-access'
+import { loadEntitySnapshot, pickRowIdentifier, stringifyJson, stringifyPayloadObject } from '@/lib/admin/table-access'
 import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
 interface AdminOperationEntityPageProps {
@@ -28,13 +28,9 @@ interface AdminOperationEntityPageProps {
   }>
 }
 
-const EMPTY_CREATE_PAYLOAD = JSON.stringify(
-  {
-    label: 'Replace with real columns for this table',
-  },
-  null,
-  2
-)
+const EMPTY_CREATE_PAYLOAD = stringifyPayloadObject({
+  label: 'Replace with real columns for this table',
+})
 const PAGE_SIZE = 20
 
 function stringifyIdentifier(value: unknown) {
@@ -193,7 +189,7 @@ export default async function AdminOperationEntityPage({ params, searchParams }:
               <input type="hidden" name="entity_key" value={entity.key} />
               <input type="hidden" name="redirect_to" value={returnTo} />
               <label className="grid gap-1 text-xs text-slate-300">
-                JSON payload
+                Payload (`column: value` per line; JSON object also supported)
                 <textarea
                   name="payload"
                   rows={6}
@@ -352,11 +348,11 @@ export default async function AdminOperationEntityPage({ params, searchParams }:
                       <input type="hidden" name="match_column" value={identifier.column} />
                       <input type="hidden" name="match_value" value={stringifyIdentifier(identifier.value)} />
                       <label className="grid gap-1 text-xs text-slate-300">
-                        Update payload (JSON)
+                        Update payload (`column: value` per line; JSON object also supported)
                         <textarea
                           name="payload"
                           rows={6}
-                          defaultValue={rowJson}
+                          defaultValue={stringifyPayloadObject(row)}
                           className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-slate-100"
                         />
                       </label>

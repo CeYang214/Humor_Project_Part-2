@@ -29,6 +29,7 @@ import {
   resolveFirstExistingTable,
   sortStepsByOrder,
   stringifyJson,
+  stringifyPayloadObject,
 } from '@/lib/admin/humor-flavors'
 import { requireSuperadminOrMatrixAdmin } from '@/lib/supabase/admin'
 
@@ -136,12 +137,12 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
     return Math.max(acc, value)
   }, 0)
 
-  const defaultFlavorPayload = stringifyJson({
+  const defaultFlavorPayload = stringifyPayloadObject({
     name: 'Sarcastic Dry Humor',
     description: 'Step-based prompt chain for short, sharp captions.',
   })
 
-  const defaultStepPayload = stringifyJson({
+  const defaultStepPayload = stringifyPayloadObject({
     [stepFlavorColumn]: selectedFlavorId || '<replace-with-flavor-id>',
     [stepOrderColumn]: maxStepOrder + 1,
     [stepPromptColumn]: 'Describe the image in neutral language before adding humor.',
@@ -226,7 +227,7 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
 
         <form action={createHumorFlavorAction} className="mt-4 grid gap-2">
           <label className="grid gap-1 text-sm">
-            <span className="text-slate-300">Create flavor payload (JSON)</span>
+            <span className="text-slate-300">Create flavor payload (`column: value` per line; JSON also works)</span>
             <textarea
               name="payload"
               rows={6}
@@ -285,11 +286,11 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
                   <input type="hidden" name="flavor_id" value={flavorId} />
                   <input type="hidden" name="id_column" value={flavorIdColumn} />
                   <label className="grid gap-1 text-xs text-slate-300">
-                    Update flavor row (JSON)
+                    Update flavor row (`column: value` per line; JSON also works)
                     <textarea
                       name="payload"
                       rows={8}
-                      defaultValue={stringifyJson(row)}
+                      defaultValue={stringifyPayloadObject(row)}
                       className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-slate-100"
                     />
                   </label>
@@ -364,7 +365,7 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
               <input type="hidden" name="flavor_column" value={stepFlavorColumn} />
               <input type="hidden" name="order_column" value={stepOrderColumn} />
               <label className="grid gap-1 text-sm">
-                <span className="text-slate-300">Create step payload (JSON)</span>
+                <span className="text-slate-300">Create step payload (`column: value` per line; JSON also works)</span>
                 <textarea
                   name="payload"
                   rows={6}
@@ -460,11 +461,11 @@ export default async function HumorFlavorsAdminPage({ searchParams }: HumorFlavo
                       <input type="hidden" name="step_id" value={stepId} />
                       <input type="hidden" name="id_column" value={stepIdColumn} />
                       <label className="grid gap-1 text-xs text-slate-300">
-                        Update step row (JSON)
+                        Update step row (`column: value` per line; JSON also works)
                         <textarea
                           name="payload"
                           rows={8}
-                          defaultValue={stringifyJson(row)}
+                          defaultValue={stringifyPayloadObject(row)}
                           className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-xs text-slate-100"
                         />
                       </label>
